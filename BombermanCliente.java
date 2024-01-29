@@ -35,6 +35,7 @@ public class BombermanCliente extends JFrame {
     // static String[][] Tablero_Game;
     ScheduledExecutorService Segundo_Plano = Executors.newSingleThreadScheduledExecutor();
     ScheduledFuture<?> Tarea;
+    boolean State_Game = true;
 
     BombermanCliente() {
         super("The Bomberman");
@@ -126,47 +127,60 @@ public class BombermanCliente extends JFrame {
             Panel_Juego.setBorder(new EmptyBorder(marginSize, 58, marginSize, 58));
             Panel_Juego.setBackground(Color.WHITE);
             int Number_Players_Living = 0;
+
+            boolean Living = true;
             ArrayList<Estado> Estados = server2.Obtener_Estado();
             for (Jugador Jugador : Estados.get(Estados.size() - 1).Jugadores) {
                 if (Jugador.Estado == true) {
                     Tablero[Jugador.Posicion.X][Jugador.Posicion.Y] = Jugador.Simbolo;
                     Number_Players_Living++;
                 }
+                if (Jugador.ID == ID_Player) {
+                    Living = Jugador.Estado;
+                }
+            }
+
+            if (Living == false) {
+                if (State_Game == true) {
+                    Tarea.cancel(true);
+                    Object[] opciones = { "Seguir viendo la partida", "Salir" };
+                    int opcion = JOptionPane.showOptionDialog(
+                            null,
+                            "¿Qué deseas hacer?",
+                            "Te mataron :(",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.QUESTION_MESSAGE,
+                            null,
+                            opciones,
+                            opciones[0] // Opción predeterminada seleccionada
+                    );
+
+                    // Verificar cuál opción fue seleccionada
+                    if (opcion == JOptionPane.YES_OPTION) {
+                        System.out.println("Seguir viendo la partida. Realizar alguna acción aquí.");
+                        State_Game = false;
+                        Tarea.cancel(false);
+                        // Agrega la lógica para "Seguir viendo la partida" aquí
+                    } else if (opcion == JOptionPane.NO_OPTION) {
+                        System.out.println("Salir. Realizar alguna acción aquí.");
+                        dispose();
+                        System.exit(0);
+                        // Agrega la lógica para "Salir" aquí
+                    } else if (opcion == JOptionPane.CLOSED_OPTION) {
+                        System.out.println("Diálogo cerrado sin selección.");
+                        dispose();
+                        System.exit(0);
+                        // Puedes manejar el caso en que el usuario cierre el diálogo sin seleccionar
+                        // una opción
+                    }
+                }
 
             }
 
-            if (Number_Players_Living == 0) {
-                Tarea.cancel(true);
-                Object[] opciones = { "Seguir viendo la partida", "Salir" };
-                int opcion = JOptionPane.showOptionDialog(
-                        null,
-                        "¿Qué deseas hacer?",
-                        "Título del diálogo",
-                        JOptionPane.YES_NO_OPTION,
-                        JOptionPane.QUESTION_MESSAGE,
-                        null,
-                        opciones,
-                        opciones[0] // Opción predeterminada seleccionada
-                );
-
-                // Verificar cuál opción fue seleccionada
-                if (opcion == JOptionPane.YES_OPTION) {
-                    System.out.println("Seguir viendo la partida. Realizar alguna acción aquí.");
-                    Tarea.cancel(false);
-                    // Agrega la lógica para "Seguir viendo la partida" aquí
-                } else if (opcion == JOptionPane.NO_OPTION) {
-                    System.out.println("Salir. Realizar alguna acción aquí.");
-                    dispose();
-                    // Agrega la lógica para "Salir" aquí
-                } else if (opcion == JOptionPane.CLOSED_OPTION) {
-                    System.out.println("Diálogo cerrado sin selección.");
-                    dispose();
-                    // Puedes manejar el caso en que el usuario cierre el diálogo sin seleccionar
-                    // una opción
-                }
-
-                //JOptionPane.showMessageDialog(null, "Haz ganado!", "Ganador!!!", JOptionPane.INFORMATION_MESSAGE);
-                
+            if (Number_Players_Living == 1) {
+                JOptionPane.showMessageDialog(null, "Haz ganado!", "Ganador!!!", JOptionPane.INFORMATION_MESSAGE);
+                dispose();
+                System.exit(0);
             }
 
             for (Bomba Bomba : Estados.get(Estados.size() - 1).Bombas) {
