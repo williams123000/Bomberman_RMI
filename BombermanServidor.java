@@ -7,6 +7,8 @@ import java.util.ArrayList;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 public class BombermanServidor implements Bomberman {
     boolean Partida_Iniciada = false;
@@ -14,7 +16,7 @@ public class BombermanServidor implements Bomberman {
     
     String[] avataresBomberman = {"A", "B", "C", "D"}; 
     ArrayList<Integer> Indices_Ocupados = new ArrayList<>();
-    
+    int Number_Booms = 1;
     // Implementación del servidor
     
     public BombermanServidor() {
@@ -195,9 +197,11 @@ public class BombermanServidor implements Bomberman {
         // Crear un nuevo objeto Estado y agregar la información de los jugadores
         Estado Estado = new Estado();
         Estado.Jugadores.addAll(Tablero.Jugadores);
+        Estado.Bombas.addAll(Tablero.Bombas);
 
         // Agregar el estado actual a la lista de estados en el campo de juego
         Tablero.Estado.add(Estado);
+        
 
         // Devolver la lista de estados del campo de juego
         return Tablero.Estado;
@@ -217,6 +221,29 @@ public class BombermanServidor implements Bomberman {
             if (Jugador.ID == id){
                 Jugador.Posicion.X = x;
                 Jugador.Posicion.Y = y;
+            }
+        }
+    }
+
+
+    public void ponerBomba(int ID_Player, int X, int Y) throws RemoteException {
+        System.out.println("Crear bomba");
+        Bomba Bomba = new Bomba(Number_Booms, ID_Player, X, Y);
+        //ID Bomba
+        
+        System.out.println(Bomba.ID_Bomba);
+        System.out.println(Bomba.Posicion.X);
+        System.out.println(Bomba.Posicion.Y);
+        System.out.println(Bomba.Hora_Creacion);
+        System.out.println(Bomba.Hora_Explosion);
+        Number_Booms++; 
+        Tablero.Bombas.add(Bomba);
+    }
+
+    public void eliminacion(String Simbolo) throws RemoteException {
+        for (Jugador Jugador : Tablero.Jugadores) {
+            if (Jugador.Simbolo.equals(Simbolo)){
+                Jugador.Estado = false;
             }
         }
     }
@@ -247,20 +274,12 @@ public class BombermanServidor implements Bomberman {
         }
     }
 
-    @Override
-    public void ponerBomba(int id, int x, int y) throws RemoteException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'ponerBomba'");
-    }
+    
 
-    @Override
-    public void eliminacion(int id) throws RemoteException {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'eliminacion'");
-    }
+    
 }
 
-class Bomberman_Game {
+class Bomberman_Game implements java.io.Serializable{
     String [][] Tablero = new String[11][11];
 
     int Numeros_Jugadores;

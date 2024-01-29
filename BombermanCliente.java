@@ -1,6 +1,7 @@
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Scanner;
 import java.util.concurrent.*;
@@ -31,8 +32,10 @@ public class BombermanCliente extends JFrame {
     int ID_Player;
     MyKeyListener myKeyListener = new MyKeyListener();
     static Bomberman server2;
-    //static String[][] Tablero_Game;
+    // static String[][] Tablero_Game;
     ScheduledExecutorService Segundo_Plano = Executors.newSingleThreadScheduledExecutor();
+    ScheduledFuture<?> Tarea;
+
     BombermanCliente() {
         super("The Bomberman");
     }
@@ -118,57 +121,176 @@ public class BombermanCliente extends JFrame {
 
             JPanel Panel_Juego = new JPanel();
             Panel_Juego.setPreferredSize(new Dimension(352, 352));
-            Panel_Juego.setLayout(new GridLayout(11,11));
+            Panel_Juego.setLayout(new GridLayout(11, 11));
             int marginSize = 10;
             Panel_Juego.setBorder(new EmptyBorder(marginSize, 58, marginSize, 58));
             Panel_Juego.setBackground(Color.WHITE);
-
+            int Number_Players_Living = 0;
             ArrayList<Estado> Estados = server2.Obtener_Estado();
             for (Jugador Jugador : Estados.get(Estados.size() - 1).Jugadores) {
-                Tablero[Jugador.Posicion.X][Jugador.Posicion.Y] = Jugador.Simbolo;
+                if (Jugador.Estado == true) {
+                    Tablero[Jugador.Posicion.X][Jugador.Posicion.Y] = Jugador.Simbolo;
+                    Number_Players_Living++;
+                }
+
             }
-            
-            for (int i = 0; i < Tablero.length; i++){
+
+            if (Number_Players_Living == 0) {
+                Tarea.cancel(true);
+                Object[] opciones = { "Seguir viendo la partida", "Salir" };
+                int opcion = JOptionPane.showOptionDialog(
+                        null,
+                        "¿Qué deseas hacer?",
+                        "Título del diálogo",
+                        JOptionPane.YES_NO_OPTION,
+                        JOptionPane.QUESTION_MESSAGE,
+                        null,
+                        opciones,
+                        opciones[0] // Opción predeterminada seleccionada
+                );
+
+                // Verificar cuál opción fue seleccionada
+                if (opcion == JOptionPane.YES_OPTION) {
+                    System.out.println("Seguir viendo la partida. Realizar alguna acción aquí.");
+                    Tarea.cancel(false);
+                    // Agrega la lógica para "Seguir viendo la partida" aquí
+                } else if (opcion == JOptionPane.NO_OPTION) {
+                    System.out.println("Salir. Realizar alguna acción aquí.");
+                    dispose();
+                    // Agrega la lógica para "Salir" aquí
+                } else if (opcion == JOptionPane.CLOSED_OPTION) {
+                    System.out.println("Diálogo cerrado sin selección.");
+                    dispose();
+                    // Puedes manejar el caso en que el usuario cierre el diálogo sin seleccionar
+                    // una opción
+                }
+
+                //JOptionPane.showMessageDialog(null, "Haz ganado!", "Ganador!!!", JOptionPane.INFORMATION_MESSAGE);
+                
+            }
+
+            for (Bomba Bomba : Estados.get(Estados.size() - 1).Bombas) {
+                int comparacion = Bomba.Hora_Estallido.compareTo(LocalDateTime.now());
+                if (comparacion > 0) {
+                    Tablero[Bomba.Posicion.X][Bomba.Posicion.Y] = "O";
+                }
+
+                int comparacion2 = Bomba.Hora_Explosion.compareTo(LocalDateTime.now());
+                if (comparacion < 0 && comparacion2 > 0) {
+                    Tablero[Bomba.Posicion.X][Bomba.Posicion.Y] = "X";
+                    if (!Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y].equals("1")) {
+                        if (!Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y].equals("0")) {
+                            server2.eliminacion(Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y]);
+                        }
+                        Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y] = "W";
+                    }
+                    if (!Tablero[Bomba.Posicion.X + 1][Bomba.Posicion.Y].equals("1")) {
+                        if (!Tablero[Bomba.Posicion.X + 1][Bomba.Posicion.Y].equals("0")) {
+                            server2.eliminacion(Tablero[Bomba.Posicion.X + 1][Bomba.Posicion.Y]);
+                        }
+                        Tablero[Bomba.Posicion.X + 1][Bomba.Posicion.Y] = "S";
+                    }
+                    if (!Tablero[Bomba.Posicion.X][Bomba.Posicion.Y + 1].equals("1")) {
+                        if (!Tablero[Bomba.Posicion.X][Bomba.Posicion.Y + 1].equals("0")) {
+                            server2.eliminacion(Tablero[Bomba.Posicion.X][Bomba.Posicion.Y + 1]);
+                        }
+                        Tablero[Bomba.Posicion.X][Bomba.Posicion.Y + 1] = "F";
+                    }
+                    if (!Tablero[Bomba.Posicion.X][Bomba.Posicion.Y - 1].equals("1")) {
+                        if (!Tablero[Bomba.Posicion.X][Bomba.Posicion.Y - 1].equals("1")) {
+                            server2.eliminacion(Tablero[Bomba.Posicion.X][Bomba.Posicion.Y - 1]);
+                        }
+                        Tablero[Bomba.Posicion.X][Bomba.Posicion.Y - 1] = "G";
+                    }
+                }
+            }
+
+            for (int i = 0; i < Tablero.length; i++) {
                 for (int j = 0; j < Tablero.length; j++) {
-                    if (Tablero[i][j].equals("A")){
+                    if (Tablero[i][j].equals("A")) {
                         JLabel Prueba = new JLabel();
                         Prueba.setIcon(new ImageIcon("Images/Player1.png"));
                         Border border = BorderFactory.createLineBorder(Color.BLACK);
                         Prueba.setBorder(border);
                         Panel_Juego.add(Prueba);
                     }
-                    
-                    if (Tablero[i][j].equals("B")){
+
+                    if (Tablero[i][j].equals("B")) {
                         JLabel Prueba = new JLabel();
                         Prueba.setIcon(new ImageIcon("Images/Player2.png"));
                         Border border = BorderFactory.createLineBorder(Color.BLACK);
                         Prueba.setBorder(border);
                         Panel_Juego.add(Prueba);
                     }
-                    
-                    if (Tablero[i][j].equals("C")){
+
+                    if (Tablero[i][j].equals("C")) {
                         JLabel Prueba = new JLabel();
                         Prueba.setIcon(new ImageIcon("Images/Player3.png"));
                         Border border = BorderFactory.createLineBorder(Color.BLACK);
                         Prueba.setBorder(border);
                         Panel_Juego.add(Prueba);
                     }
-                    if (Tablero[i][j].equals("D")){
+                    if (Tablero[i][j].equals("D")) {
                         JLabel Prueba = new JLabel();
                         Prueba.setIcon(new ImageIcon("Images/Player4.png"));
                         Border border = BorderFactory.createLineBorder(Color.BLACK);
                         Prueba.setBorder(border);
                         Panel_Juego.add(Prueba);
                     }
-                    if (Tablero[i][j].equals("1")){
+
+                    if (Tablero[i][j].equals("O")) {
+                        JLabel Prueba = new JLabel();
+                        Prueba.setIcon(new ImageIcon("Images/Bomb.png"));
+                        Border border = BorderFactory.createLineBorder(Color.BLACK);
+                        Prueba.setBorder(border);
+                        Panel_Juego.add(Prueba);
+                    }
+
+                    if (Tablero[i][j].equals("X")) {
+                        JLabel Prueba = new JLabel();
+                        Prueba.setIcon(new ImageIcon("Images/Burst_Central.png"));
+                        Border border = BorderFactory.createLineBorder(Color.BLACK);
+                        Prueba.setBorder(border);
+                        Panel_Juego.add(Prueba);
+                    }
+                    if (Tablero[i][j].equals("W")) {
+                        JLabel Prueba = new JLabel();
+                        Prueba.setIcon(new ImageIcon("Images/Burst_Up.png"));
+                        Border border = BorderFactory.createLineBorder(Color.BLACK);
+                        Prueba.setBorder(border);
+                        Panel_Juego.add(Prueba);
+                    }
+                    if (Tablero[i][j].equals("S")) {
+                        JLabel Prueba = new JLabel();
+                        Prueba.setIcon(new ImageIcon("Images/Burst_Down.png"));
+                        Border border = BorderFactory.createLineBorder(Color.BLACK);
+                        Prueba.setBorder(border);
+                        Panel_Juego.add(Prueba);
+                    }
+                    if (Tablero[i][j].equals("F")) {
+                        JLabel Prueba = new JLabel();
+                        Prueba.setIcon(new ImageIcon("Images/Burst_Right.png"));
+                        Border border = BorderFactory.createLineBorder(Color.BLACK);
+                        Prueba.setBorder(border);
+                        Panel_Juego.add(Prueba);
+                    }
+                    if (Tablero[i][j].equals("G")) {
+                        JLabel Prueba = new JLabel();
+                        Prueba.setIcon(new ImageIcon("Images/Burst_Left.png"));
+                        Border border = BorderFactory.createLineBorder(Color.BLACK);
+                        Prueba.setBorder(border);
+                        Panel_Juego.add(Prueba);
+                    }
+
+                    if (Tablero[i][j].equals("1")) {
                         JLabel Prueba = new JLabel();
                         Prueba.setIcon(new ImageIcon("Images/Muro.png"));
                         Border border = BorderFactory.createLineBorder(Color.BLACK);
                         Prueba.setBorder(border);
                         Panel_Juego.add(Prueba);
-                    } 
+                    }
 
-                    if (Tablero[i][j].equals("0")){
+                    if (Tablero[i][j].equals("0")) {
                         JLabel Prueba = new JLabel();
                         Prueba.setIcon(new ImageIcon("Images/Empty.png"));
                         Border border = BorderFactory.createLineBorder(Color.BLACK);
@@ -177,8 +299,7 @@ public class BombermanCliente extends JFrame {
                     }
                 }
             }
-            
-            
+
             getContentPane().setLayout(new BorderLayout());
             getContentPane().add(label, BorderLayout.NORTH);
             getContentPane().add(Panel_Juego, BorderLayout.CENTER);
@@ -191,14 +312,14 @@ public class BombermanCliente extends JFrame {
 
     }
 
-    List<Integer> Ubicar_Player(){
+    List<Integer> Ubicar_Player() {
         try {
             int X_Axis = 0;
             int Y_Axis = 0;
             ArrayList<Estado> Estados = server2.Obtener_Estado();
             for (Jugador Jugador : Estados.get(Estados.size() - 1).Jugadores) {
-                if (Jugador.ID == ID_Player){
-                    X_Axis = Jugador.Posicion.X; 
+                if (Jugador.ID == ID_Player) {
+                    X_Axis = Jugador.Posicion.X;
                     Y_Axis = Jugador.Posicion.Y;
                 }
             }
@@ -214,62 +335,71 @@ public class BombermanCliente extends JFrame {
         return null;
     }
 
-    void Move_Up(List<Integer> Posicion){
+    void Move_Up(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
-            if (!Tablero[X_Axis-1][Y_Axis].equals("1")){
-                server2.movimiento(ID_Player, X_Axis-1, Y_Axis);
-                //Tablero_Game[X_Axis][Y_Axis] = "0";
+            if (!Tablero[X_Axis - 1][Y_Axis].equals("1")) {
+                server2.movimiento(ID_Player, X_Axis - 1, Y_Axis);
+                // Tablero_Game[X_Axis][Y_Axis] = "0";
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
-    void Move_Down(List<Integer> Posicion){
+    void Move_Down(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
-            if (!Tablero[X_Axis+1][Y_Axis].equals("1")){
-                server2.movimiento(ID_Player, X_Axis+1, Y_Axis);
-                //Tablero_Game[X_Axis][Y_Axis] = "0";
+            if (!Tablero[X_Axis + 1][Y_Axis].equals("1")) {
+                server2.movimiento(ID_Player, X_Axis + 1, Y_Axis);
+                // Tablero_Game[X_Axis][Y_Axis] = "0";
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
-    void Move_Left(List<Integer> Posicion){
+    void Move_Left(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
-            if (!Tablero[X_Axis][Y_Axis-1].equals("1")){
-                server2.movimiento(ID_Player, X_Axis, Y_Axis-1);
-                //Tablero_Game[X_Axis][Y_Axis] = "0";
+            if (!Tablero[X_Axis][Y_Axis - 1].equals("1")) {
+                server2.movimiento(ID_Player, X_Axis, Y_Axis - 1);
+                // Tablero_Game[X_Axis][Y_Axis] = "0";
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
-    void Move_Right(List<Integer> Posicion){
+    void Move_Right(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
-            if (!Tablero[X_Axis][Y_Axis+1].equals("1")){
-                server2.movimiento(ID_Player, X_Axis, Y_Axis+1);
-                //Tablero_Game[X_Axis][Y_Axis] = "0";
+            if (!Tablero[X_Axis][Y_Axis + 1].equals("1")) {
+                server2.movimiento(ID_Player, X_Axis, Y_Axis + 1);
+                // Tablero_Game[X_Axis][Y_Axis] = "0";
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
+    void Place_Bomb(List<Integer> Posicion) {
+        int X_Axis = Posicion.get(0);
+        int Y_Axis = Posicion.get(1);
+        try {
+            server2.ponerBomba(ID_Player, X_Axis, Y_Axis);
+        } catch (RemoteException e) {
+            e.printStackTrace();
+        }
+    }
 
     private class MyKeyListener implements KeyListener {
         @Override
@@ -282,43 +412,43 @@ public class BombermanCliente extends JFrame {
             // Verificar las teclas de flecha y realizar acciones correspondientes
             List<Integer> Posicion = Ubicar_Player();
             int keyCode = e.getKeyCode();
-           
-            
+
             switch (keyCode) {
                 case KeyEvent.VK_UP:
-                    
+
                     Move_Up(Posicion);
-                    //removeKeyListener(myKeyListener);
-                    //limpiarJFrame();
-                    //Juego_GUI();
+                    // removeKeyListener(myKeyListener);
+                    // limpiarJFrame();
+                    // Juego_GUI();
 
                     break;
                 case KeyEvent.VK_DOWN:
-                    
+
                     Move_Down(Posicion);
-                    //removeKeyListener(myKeyListener);
-                    //limpiarJFrame();
-                    //Juego_GUI();
+                    // removeKeyListener(myKeyListener);
+                    // limpiarJFrame();
+                    // Juego_GUI();
                     // Acción cuando se presiona la flecha hacia abajo
                     break;
                 case KeyEvent.VK_LEFT:
-                    
+
                     Move_Left(Posicion);
-                    //removeKeyListener(myKeyListener);
-                    //limpiarJFrame();
-                    //Juego_GUI();
+                    // removeKeyListener(myKeyListener);
+                    // limpiarJFrame();
+                    // Juego_GUI();
                     // Acción cuando se presiona la flecha hacia la izquierda
                     break;
                 case KeyEvent.VK_RIGHT:
                     Move_Right(Posicion);
-                    //removeKeyListener(myKeyListener);
-                    //limpiarJFrame();
-                    //Juego_GUI();
-                    
+                    // removeKeyListener(myKeyListener);
+                    // limpiarJFrame();
+                    // Juego_GUI();
+
                     // Acción cuando se presiona la flecha hacia la derecha
                     break;
                 case KeyEvent.VK_SPACE:
                     System.out.println("Barra Espaciadora");
+                    Place_Bomb(Posicion);
                     // Acción cuando se presiona la barra espaciadora
                     break;
             }
@@ -381,16 +511,18 @@ public class BombermanCliente extends JFrame {
             JButton aceptarButton = new JButton("Aceptar");
             aceptarButton.addActionListener(e -> {
                 // Acciones al hacer clic en "Aceptar"
-                /*try {
-                    Tablero_Game = server2.Obtener_Campo();
-                } catch (RemoteException e1) {
-                    // TODO Auto-generated catch block
-                    e1.printStackTrace();
-                }*/
+                /*
+                 * try {
+                 * Tablero_Game = server2.Obtener_Campo();
+                 * } catch (RemoteException e1) {
+                 * // TODO Auto-generated catch block
+                 * e1.printStackTrace();
+                 * }
+                 */
                 System.out.println("Botón Aceptar clickeado");
                 limpiarJFrame();
                 int periodoSegundos = 100; // Ajusta el periodo según tus necesidades
-                Segundo_Plano.scheduleAtFixedRate(() -> {
+                Tarea = Segundo_Plano.scheduleAtFixedRate(() -> {
                     // Lógica de la tarea que se ejecutará en segundo plano
                     SwingUtilities.invokeLater(() -> {
                         removeKeyListener(myKeyListener);
@@ -399,8 +531,8 @@ public class BombermanCliente extends JFrame {
                     });
                     System.out.println("Tarea en segundo plano ejecutada");
                 }, 0, periodoSegundos, TimeUnit.MILLISECONDS);
-                //Juego_GUI();
-                //Juego(server2);
+                // Juego_GUI();
+                // Juego(server2);
 
                 try {
                     if (server2.partidaLista()) {
