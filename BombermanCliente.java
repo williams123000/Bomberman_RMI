@@ -178,6 +178,7 @@ public class BombermanCliente extends JFrame {
             }
 
             if (Number_Players_Living == 1) {
+                Tarea.cancel(true);
                 JOptionPane.showMessageDialog(null, "Haz ganado!", "Ganador!!!", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
                 System.exit(0);
