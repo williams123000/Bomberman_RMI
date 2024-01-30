@@ -125,7 +125,7 @@ public class BombermanCliente extends JFrame {
             Panel_Juego.setLayout(new GridLayout(11, 11));
             int marginSize = 10;
             Panel_Juego.setBorder(new EmptyBorder(marginSize, 58, marginSize, 58));
-            Panel_Juego.setBackground(Color.WHITE);
+            Panel_Juego.setBackground(Color.BLACK);
             int Number_Players_Living = 0;
 
             boolean Living = true;
@@ -157,17 +157,14 @@ public class BombermanCliente extends JFrame {
 
                     // Verificar cuál opción fue seleccionada
                     if (opcion == JOptionPane.YES_OPTION) {
-                        System.out.println("Seguir viendo la partida. Realizar alguna acción aquí.");
                         State_Game = false;
                         Tarea.cancel(false);
                         // Agrega la lógica para "Seguir viendo la partida" aquí
                     } else if (opcion == JOptionPane.NO_OPTION) {
-                        System.out.println("Salir. Realizar alguna acción aquí.");
                         dispose();
                         System.exit(0);
                         // Agrega la lógica para "Salir" aquí
                     } else if (opcion == JOptionPane.CLOSED_OPTION) {
-                        System.out.println("Diálogo cerrado sin selección.");
                         dispose();
                         System.exit(0);
                         // Puedes manejar el caso en que el usuario cierre el diálogo sin seleccionar
@@ -462,7 +459,6 @@ public class BombermanCliente extends JFrame {
                     // Acción cuando se presiona la flecha hacia la derecha
                     break;
                 case KeyEvent.VK_SPACE:
-                    System.out.println("Barra Espaciadora");
                     Place_Bomb(Posicion);
                     // Acción cuando se presiona la barra espaciadora
                     break;
@@ -509,7 +505,6 @@ public class BombermanCliente extends JFrame {
             modelo.setColumnIdentifiers(columnas);
 
             for (Jugador Jugador : Jugadores) {
-                System.out.println("ID: " + Jugador.ID + "Nombre: " + Jugador.Nombre + "Simbolo: " + Jugador.Simbolo);
                 Object[] filaDatos = new Object[3];
                 filaDatos[0] = Jugador.ID;
                 filaDatos[1] = Jugador.Nombre;
@@ -526,33 +521,26 @@ public class BombermanCliente extends JFrame {
             JButton aceptarButton = new JButton("Aceptar");
             aceptarButton.addActionListener(e -> {
                 // Acciones al hacer clic en "Aceptar"
-                /*
-                 * try {
-                 * Tablero_Game = server2.Obtener_Campo();
-                 * } catch (RemoteException e1) {
-                 * // TODO Auto-generated catch block
-                 * e1.printStackTrace();
-                 * }
-                 */
-                System.out.println("Botón Aceptar clickeado");
-                limpiarJFrame();
-                int periodoSegundos = 100; // Ajusta el periodo según tus necesidades
-                Tarea = Segundo_Plano.scheduleAtFixedRate(() -> {
-                    // Lógica de la tarea que se ejecutará en segundo plano
-                    SwingUtilities.invokeLater(() -> {
-                        removeKeyListener(myKeyListener);
-                        limpiarJFrame();
-                        Juego_GUI();
-                    });
-                    System.out.println("Tarea en segundo plano ejecutada");
-                }, 0, periodoSegundos, TimeUnit.MILLISECONDS);
-                // Juego_GUI();
-                // Juego(server2);
 
                 try {
                     if (server2.partidaLista()) {
                         // label1.setText("Todos los jugadores listos ...");
+                        limpiarJFrame();
+                        int periodoSegundos = 100; // Ajusta el periodo según tus necesidades
+                        Tarea = Segundo_Plano.scheduleAtFixedRate(() -> {
+                            // Lógica de la tarea que se ejecutará en segundo plano
+                            SwingUtilities.invokeLater(() -> {
+                                removeKeyListener(myKeyListener);
+                                limpiarJFrame();
+                                Juego_GUI();
+                            });
+                        }, 0, periodoSegundos, TimeUnit.MILLISECONDS);
 
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Aun no estan todos los jugadores", "SUCCESS de SERVER",
+                                JOptionPane.INFORMATION_MESSAGE);
+                        limpiarJFrame();
+                        SalaPartida_GUI();
                     }
                 } catch (RemoteException i) {
                     i.printStackTrace();
@@ -622,8 +610,6 @@ public class BombermanCliente extends JFrame {
         JButton aceptarButton = new JButton("Aceptar");
         aceptarButton.addActionListener(e -> {
             // Acciones al hacer clic en "Aceptar"
-            System.out.println("Botón Aceptar clickeado");
-            System.out.println(Number_Players);
 
             try {
                 if (server2.Limite_Jugadores()) {
@@ -631,7 +617,6 @@ public class BombermanCliente extends JFrame {
                     ID_Player = server2.nuevoJugador(_Name_Player);
                     JOptionPane.showMessageDialog(null, "Jugador creado correctamente", "SUCCESS de SERVER",
                             JOptionPane.INFORMATION_MESSAGE);
-                    System.out.println("ID de jugador asignado: " + ID_Player);
                     limpiarJFrame();
                     Open_Window();
                 } else {
@@ -740,8 +725,6 @@ public class BombermanCliente extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Acciones al hacer clic en "Aceptar"
-                System.out.println("Botón Aceptar clickeado");
-                System.out.println(Number_Players);
                 try {
                     if (server2.Validar_Partida()) {
                         JOptionPane.showMessageDialog(null, "Ya hay una partida en curso ...", "Error de SERVER",
@@ -878,7 +861,6 @@ public class BombermanCliente extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lógica para la opción de Nueva Partida
-                System.out.println("Funcion Nueva Partida");
                 limpiarJFrame();
                 CrearNuevaPartida_GUI();
             }
@@ -888,7 +870,6 @@ public class BombermanCliente extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lógica para la opción de Crear Jugador
-                System.out.println("Crear Jugador");
                 try {
                     if (server2.Validar_Partida()) {
                         limpiarJFrame();
@@ -909,7 +890,6 @@ public class BombermanCliente extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lógica para la opción de Iniciar Partida
-                System.out.println("Iniciar Partida");
                 try {
                     if (server2.Validar_Partida()) {
                         limpiarJFrame();
@@ -919,7 +899,6 @@ public class BombermanCliente extends JFrame {
                                 JOptionPane.WARNING_MESSAGE);
                     }
                 } catch (RemoteException e1) {
-                    // TODO Auto-generated catch block
                     e1.printStackTrace();
                 }
 
@@ -930,7 +909,7 @@ public class BombermanCliente extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Lógica para la opción de Salir
-                System.out.println("Salir");
+                
                 System.exit(0); // Cierra la aplicación
             }
         });
@@ -974,308 +953,6 @@ public class BombermanCliente extends JFrame {
         setVisible(true);
     }
 
-    /**
-     * Método para gestionar un menú interactivo.
-     */
-    static String Gestionar_Menu(Scanner scanner) {
-        // Solicitar al usuario que ingrese una opción
-        System.out.print("Ingresa una opcion: ");
-
-        // Leer la línea ingresada por el usuario
-        String linea = scanner.nextLine();
-
-        // Devolver la opción ingresada
-        return linea;
-    }
-
-    /**
-     * Método para limpiar la consola.
-     * Este método utiliza códigos de escape ANSI para borrar la pantalla de la
-     * consola.
-     */
-    private static void limpiarConsola() {
-        // Código de escape ANSI para mover el cursor a la esquina superior izquierda de
-        // la pantalla
-        System.out.print("\033[H\033[2J");
-
-        // Limpiar el flujo de salida para asegurar que la consola se actualice
-        // correctamente
-        System.out.flush();
-    }
-
-    /**
-     * Método para mostrar el menú principal del juego Bomberman.
-     */
-    static void Menu() {
-        System.out.println("💣 Bomberman 💣");
-        System.out.println("====  Menú  ====");
-        System.out.println("- 1. Nueva Partida");
-        System.out.println("- 2. Crear jugador");
-        System.out.println("- 3. Iniciar partida");
-        System.out.println("- 4. Salir");
-    }
-
-    /**
-     * Método para inicializar el campo de juego con un patrón específico.
-     * 
-     * @param Tablero Matriz que representa el campo de juego.
-     *                Se espera que cada elemento contenga un carácter
-     *                representativo del terreno.
-     */
-    static void Campo_Juego(String[][] Tablero) {
-        // Iterar sobre las filas del tablero
-        for (int i = 0; i < Tablero.length; i++) {
-            // Iterar sobre las columnas del tablero
-            for (int j = 0; j < Tablero.length; j++) {
-                // Inicializar cada celda del tablero con el carácter representativo de terreno
-                Tablero[i][j] = "🟩";
-            }
-        }
-    }
-
-    /**
-     * Método para establecer límites en el área de juego en el campo de Bomberman.
-     * Las celdas en los bordes del campo se marcan con un carácter especial para
-     * indicar los límites.
-     * 
-     * @param Tablero Matriz que representa el campo de juego.
-     *                Se espera que cada elemento contenga un carácter
-     *                representativo del terreno.
-     */
-    static void Limitar(String[][] Tablero) {
-        // Iterar sobre las filas del tablero
-        for (int i = 0; i < Tablero.length; i++) {
-            // Iterar sobre las columnas del tablero
-            for (int j = 0; j < Tablero.length; j++) {
-                // Verificar si la celda está en el borde del campo
-                if (i == 0 || i == Tablero.length - 1 || j == 0 || j == Tablero.length - 1) {
-                    // Marcar la celda con un carácter especial para indicar un límite
-                    Tablero[i][j] = "❌";
-                }
-            }
-        }
-    }
-
-    /**
-     * Método para visualizar el campo de juego.
-     * Muestra el contenido de cada celda en el campo de juego.
-     * 
-     * @param Tablero Matriz que representa el campo de juego.
-     *                Se espera que cada elemento contenga un carácter
-     *                representativo del terreno.
-     */
-    static void Visualizar_Campo(String[][] Tablero) {
-        // Iterar sobre las filas del tablero
-        for (int i = 0; i < Tablero.length; i++) {
-            // Iterar sobre las columnas del tablero
-            for (int j = 0; j < Tablero.length; j++) {
-                // Imprimir el contenido de la celda
-                System.out.print(Tablero[i][j]);
-            }
-            // Imprimir una nueva línea al final de cada fila para formatear la
-            // visualización
-            System.out.println();
-        }
-    }
-
-    /**
-     * Método para validar y gestionar las reglas de movimiento de los jugadores en
-     * Bomberman.
-     * 
-     * @param Tablero   Matriz que representa el campo de juego.
-     *                  Se espera que cada elemento contenga un carácter
-     *                  representativo del terreno.
-     * @param Jugadores Lista de jugadores en el juego.
-     * @param server    Instancia de la interfaz remota del servidor de Bomberman.
-     * @param ID        Identificador del jugador para el cual se validan las reglas
-     *                  de movimiento.
-     */
-    static void Validar_Reglas_Movimiento(String[][] Tablero, ArrayList<Jugador> Jugadores, Bomberman server) {
-        int X = 0;
-        int Y = 0;
-
-        // Obtener la posición actual del jugador con el ID proporcionado
-        for (Jugador Jugador : Jugadores) {
-            if (Jugador.ID == ID) {
-                X = Jugador.Posicion.X;
-                Y = Jugador.Posicion.Y;
-            }
-        }
-
-        // Validar movimiento con respcto al limite del mapa
-        Scanner scanner = new Scanner(System.in);
-        // Crear un ExecutorService para ejecutar el temporizador en un hilo separado
-        ExecutorService executor = Executors.newSingleThreadExecutor();
-
-        try {
-            // Utilizar un Future para gestionar el temporizador
-            Future<String> futureInput = executor.submit(() -> {
-                String linea = scanner.nextLine();
-                return linea;
-            });
-
-            try {
-                // Obtener el resultado del Future (la entrada del usuario)
-                String Movimiento = futureInput.get(2, TimeUnit.SECONDS);
-                for (int i = 0; i < Movimiento.length(); i++) {
-                    char caracter = Movimiento.charAt(i);
-
-                    if (caracter == 'A' || caracter == 'a') {
-                        // Mover a la Izquierda
-                        if (Tablero[X][Y - 1] != "❌") {
-                            try {
-                                server.movimiento(ID, X, Y - 1);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-
-                        } else {
-                            try {
-                                server.movimiento(ID, X, Y);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-
-                        }
-                    }
-                    if (caracter == 'D' || caracter == 'd') {
-                        // Mover a la Derecha
-                        if (Tablero[X][Y + 1] != "❌") {
-                            try {
-                                server.movimiento(ID, X, Y + 1);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            try {
-                                server.movimiento(ID, X, Y);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    if (caracter == 'W' || caracter == 'w') {
-                        // Mover a la Arriba
-                        if (Tablero[X - 1][Y] != "❌") {
-                            try {
-                                server.movimiento(ID, X - 1, Y);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            try {
-                                server.movimiento(ID, X, Y);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-
-                    if (caracter == 'S' || caracter == 's') {
-                        // Mover a la Abajo
-                        if (Tablero[X + 1][Y] != "❌") {
-                            try {
-                                server.movimiento(ID, X + 1, Y);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        } else {
-                            try {
-                                server.movimiento(ID, X, Y);
-                            } catch (RemoteException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                    if (caracter == ' ') {
-                        // Imprimir Bomba
-                    }
-
-                }
-
-            } catch (TimeoutException e) {
-                // Excepción lanzada si no hay entrada en 2 segundos
-                System.out.println("No se ingresó movimiento ...");
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        } finally {
-            // Cerrar el scanner y apagar el ExecutorService
-            // scanner.close();
-            executor.shutdown();
-        }
-    }
-
-    /**
-     * Método para actualizar y visualizar el tablero de juego en Bomberman.
-     * 
-     * @param Tablero Matriz que representa el campo de juego.
-     *                Se espera que cada elemento contenga un carácter
-     *                representativo del terreno.
-     * @param server  Instancia de la interfaz remota del servidor de Bomberman.
-     */
-    static void Actualizar_Tablero(String[][] Tablero, Bomberman server) {
-
-        limpiarConsola();
-        System.out.println("** The Bomberman 💣  **");
-        try {
-            // Configurar el campo de juego y establecer límites
-            Campo_Juego(Tablero);
-            Limitar(Tablero);
-
-            // Obtener el estado actual del juego desde el servidor
-            ArrayList<Estado> Estados = server.Obtener_Estado();
-
-            // Actualizar el tablero con la posición actual de cada jugador
-            for (Jugador Jugador : Estados.get(Estados.size() - 1).Jugadores) {
-                Tablero[Jugador.Posicion.X][Jugador.Posicion.Y] = Jugador.Simbolo;
-            }
-
-            // Visualizar el campo de juego con las actualizaciones
-            Visualizar_Campo(Tablero);
-
-            // Validar y gestionar las reglas de movimiento de los jugadores
-            Validar_Reglas_Movimiento(Tablero, Estados.get(Estados.size() - 1).Jugadores, server);
-
-            // Llamar recursivamente para seguir actualizando el tablero
-            Actualizar_Tablero(Tablero, server);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Método para iniciar y ejecutar el juego Bomberman.
-     * 
-     * @param server Instancia de la interfaz remota del servidor de Bomberman.
-     */
-    static void Juego(Bomberman server) {
-        limpiarConsola();
-
-        System.out.println("🟩 Iniciando Partida ....");
-        System.out.println("******* Tablero Inicial *******");
-        try {
-            // Obtener el campo de juego inicial desde el servidor
-            String[][] Tablero_Juego = server.Obtener_Campo();
-
-            // Visualizar el campo de juego inicial
-            Visualizar_Campo(Tablero_Juego);
-
-            System.out.println();
-
-            // Esperar la entrada del usuario para iniciar la partida
-            System.out.println("Pulsar enter para iniciar ....");
-            Scanner scanner = new Scanner(System.in);
-
-            scanner.nextLine();
-
-            // Llamar al método para actualizar y visualizar el tablero durante la partida
-            Actualizar_Tablero(Tablero_Juego, server);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
 
     /**
      * Método principal que inicia y ejecuta el cliente de Bomberman.
@@ -1294,112 +971,6 @@ public class BombermanCliente extends JFrame {
             server2 = server;
 
             new BombermanCliente().Open_Window();
-
-            int Opcion = 0;
-            Scanner scanner = new Scanner(System.in);
-            boolean respuesta;
-
-            // Menú principal
-            do {
-                limpiarConsola();
-                Menu();
-                Opcion = Integer.parseInt(Gestionar_Menu(scanner));
-                switch (Opcion) {
-                    case 1:
-                        limpiarConsola();
-                        if (server.Validar_Partida()) {
-                            System.out.println("❌ Ya hay una partida en curso ...");
-                            scanner.nextLine();
-                        } else {
-                            System.out.println("🎮 Generando partida nueva .....");
-                            System.out.print("🙋🏻 Numero de jugadores: ");
-                            String linea = scanner.nextLine();
-                            server.nuevaPartida(Integer.parseInt(linea));
-                        }
-                        break;
-
-                    case 2:
-                        limpiarConsola();
-                        if (server.Validar_Partida()) {
-                            System.out.println("🎮 Generar jugador");
-                            System.out.print("🙋🏻 Nombre del jugador: ");
-                            String nombre = scanner.nextLine();
-                            respuesta = server.Limite_Jugadores();
-                            if (respuesta == true) {
-                                System.out.println("Creando jugador ....");
-                                ID = server.nuevoJugador(nombre);
-                                System.out.print("Jugador creado correctamente");
-                                System.out.println("ID de jugador asignado: " + ID);
-                                scanner.nextLine();
-                            } else {
-                                System.out.print("Ya estan todos los jugadores ...");
-                                scanner.nextLine();
-                            }
-                        } else {
-                            limpiarConsola();
-                            System.out.println("❌ Aun no hay una partida en curso ...");
-                            scanner.nextLine();
-                        }
-                        break;
-                    case 3:
-                        limpiarConsola();
-                        if (server.Validar_Partida()) {
-                            if (server.partidaLista()) {
-                                System.out.println("Todos los jugadores listos ...");
-                                ArrayList<Jugador> Jugadores = server.Jugadores_Listos();
-                                if (Jugadores.size() > 0) {
-                                    System.out.printf("%-5s%-15s%-15s%n", "ID", "Nombre", "Simbolo", "Símbolo");
-                                    System.out.println("-------------------------------------------");
-                                    // Filas de la tabla
-                                    for (Jugador Jugador : Jugadores) {
-                                        System.out.printf("%-5d%-15s%-15s%n", Jugador.ID, Jugador.Nombre,
-                                                Jugador.Simbolo);
-                                    }
-                                }
-                                scanner.nextLine();
-                                Juego(server);
-                            } else {
-                                while (!server.partidaLista()) {
-                                    limpiarConsola();
-                                    System.out.println("❌ Faltan algun los jugadores ...");
-                                    int Numero_Jugadores = server.Numero_Jugadores();
-                                    ArrayList<Jugador> Jugadores = server.Jugadores_Listos();
-                                    System.out.println("Numero de jugadores registrados: " + Jugadores.size() + " de "
-                                            + Numero_Jugadores);
-                                    if (Jugadores.size() > 0) {
-                                        System.out.printf("%-5s%-15s%-15s%n", "ID", "Nombre", "Simbolo", "Símbolo");
-                                        System.out.println("-------------------------------------------");
-
-                                        // Filas de la tabla
-                                        for (Jugador Jugador : Jugadores) {
-                                            System.out.printf("%-5d%-15s%-15s%n", Jugador.ID, Jugador.Nombre,
-                                                    Jugador.Simbolo);
-                                        }
-                                    }
-                                    System.out.println("Presiona Ctrl + C para salir ...");
-                                    try {
-                                        // Ponemos a "Dormir" el programa durante los ms que queremos
-                                        Thread.sleep(1000);
-                                    } catch (Exception e) {
-                                        System.out.println(e);
-                                    }
-                                }
-                                Juego(server);
-                            }
-                        } else {
-                            System.out.println("❌ Aun no hay una partida en curso ...");
-                            scanner.nextLine();
-                        }
-
-                        break;
-                    default:
-                        break;
-                }
-            } while (Opcion != 4);
-
-            limpiarConsola();
-            System.out.print("Desconectando .....");
-            scanner.nextLine();
 
         } catch (Exception e) {
             e.printStackTrace();

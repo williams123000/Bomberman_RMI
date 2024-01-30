@@ -9,34 +9,38 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.Iterator;
 
 public class BombermanServidor implements Bomberman {
     boolean Partida_Iniciada = false;
     Bomberman_Game Tablero = new Bomberman_Game();
-    
-    String[] avataresBomberman = {"A", "B", "C", "D"}; 
+
+    String[] avataresBomberman = { "A", "B", "C", "D" };
     ArrayList<Integer> Indices_Ocupados = new ArrayList<>();
     int Number_Booms = 1;
     // Implementación del servidor
-    
+
     public BombermanServidor() {
-        //super();
+        // super();
         // Inicializar variables del servidor
     }
 
     /**
-     * Método para obtener el estado actual del campo de juego en el servidor Bomberman.
+     * Método para obtener el estado actual del campo de juego en el servidor
+     * Bomberman.
      * 
      * @return Matriz que representa el campo de juego.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
     public String[][] Obtener_Campo() throws RemoteException {
-        // Devuelve la matriz que representa el campo de juego desde el objeto Tablero en el servidor
+        // Devuelve la matriz que representa el campo de juego desde el objeto Tablero
+        // en el servidor
         return Tablero.Tablero;
     }
 
     /**
-     * Método para validar si la partida ya ha sido iniciada en el servidor Bomberman.
+     * Método para validar si la partida ya ha sido iniciada en el servidor
+     * Bomberman.
      * 
      * @return `true` si la partida ha sido iniciada, `false` si no.
      * @throws RemoteException Si ocurre un error de comunicación remota.
@@ -50,20 +54,20 @@ public class BombermanServidor implements Bomberman {
      * Método para crear una nueva partida en el servidor Bomberman.
      * 
      * @param numJugadores Número de jugadores para la nueva partida.
-     * @return `true` si se crea la nueva partida con éxito, `false` si ya hay una partida en curso.
+     * @return `true` si se crea la nueva partida con éxito, `false` si ya hay una
+     *         partida en curso.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
     public boolean nuevaPartida(int numJugadores) throws RemoteException {
         // Verificar si ya hay una partida en curso
-        if (Partida_Iniciada){
+        if (Partida_Iniciada) {
             System.out.println("Ya hay una partida en curso ...");
             return false;
         }
 
         // Crear una nueva partida
         System.out.println("Creando nueva partida...");
-        System.out.println(numJugadores);
-        
+
         // Inicializar el campo de juego
         Tablero.Campo_Juego();
         Tablero.Limitar();
@@ -74,7 +78,7 @@ public class BombermanServidor implements Bomberman {
         Partida_Iniciada = true;
         Tablero.Numeros_Jugadores = numJugadores;
         Tablero.Jugadores_Registrados = -1;
-        
+
         return true;
     }
 
@@ -96,43 +100,44 @@ public class BombermanServidor implements Bomberman {
             Indice_Emoji = random.nextInt(avataresBomberman.length);
 
             // Romper el bucle si el índice no está ocupado
-            if (!Indices_Ocupados.contains(Indice_Emoji)){
+            if (!Indices_Ocupados.contains(Indice_Emoji)) {
                 break;
             }
         } while (Indices_Ocupados.contains(Indice_Emoji));
-        
+
         // Generar posiciones aleatorias para el jugador en el campo de juego
-        int X = random.nextInt((Tablero.Tablero.length-2) - 1 + 1) + 1;
-        int Y = random.nextInt((Tablero.Tablero.length-2) - 1 + 1) + 1;
+        int X = random.nextInt((Tablero.Tablero.length - 2) - 1 + 1) + 1;
+        int Y = random.nextInt((Tablero.Tablero.length - 2) - 1 + 1) + 1;
 
         while (Tablero.Tablero[X][Y].equals("1")) {
-            X = random.nextInt((Tablero.Tablero.length-2) - 1 + 1) + 1;
-            Y = random.nextInt((Tablero.Tablero.length-2) - 1 + 1) + 1;
+            X = random.nextInt((Tablero.Tablero.length - 2) - 1 + 1) + 1;
+            Y = random.nextInt((Tablero.Tablero.length - 2) - 1 + 1) + 1;
         }
-        
 
         // Crear un nuevo jugador con la información generada
-        Jugador Jugador = new Jugador(Tablero.Jugadores_Registrados, nombre, avataresBomberman[Indice_Emoji], X , Y);
+        Jugador Jugador = new Jugador(Tablero.Jugadores_Registrados, nombre, avataresBomberman[Indice_Emoji], X, Y);
 
         // Agregar el jugador a la lista de jugadores en el campo de juego
         Tablero.Jugadores.add(Jugador);
 
         // Registrar el índice del emoji como ocupado
         Indices_Ocupados.add(Indice_Emoji);
-        
+
         // Devolver el ID asignado al nuevo jugador
         return Tablero.Jugadores_Registrados;
     }
 
     /**
-     * Método para verificar si se ha alcanzado el límite de jugadores en el servidor Bomberman.
+     * Método para verificar si se ha alcanzado el límite de jugadores en el
+     * servidor Bomberman.
      * 
-     * @return `true` si aún hay espacio para más jugadores, `false` si se alcanzó el límite.
+     * @return `true` si aún hay espacio para más jugadores, `false` si se alcanzó
+     *         el límite.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
     public boolean Limite_Jugadores() throws RemoteException {
         // Verificar si se ha alcanzado el límite de jugadores
-        if (Tablero.Jugadores_Registrados == Tablero.Numeros_Jugadores-1){
+        if (Tablero.Jugadores_Registrados == Tablero.Numeros_Jugadores - 1) {
             System.out.println("Ya se alcanzo el limite de jugadores ....");
             return false;
         }
@@ -140,16 +145,18 @@ public class BombermanServidor implements Bomberman {
     }
 
     /**
-     * Método para verificar si la partida está lista para comenzar en el servidor Bomberman.
+     * Método para verificar si la partida está lista para comenzar en el servidor
+     * Bomberman.
      * 
-     * @return `true` si la partida está lista para comenzar, `false` si aún no se han registrado todos los jugadores.
+     * @return `true` si la partida está lista para comenzar, `false` si aún no se
+     *         han registrado todos los jugadores.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
     public boolean partidaLista() throws RemoteException {
         // Verificar si se han registrado todos los jugadores necesarios para la partida
-        if (Tablero.Jugadores_Registrados == Tablero.Numeros_Jugadores-1){
+        if (Tablero.Jugadores_Registrados == Tablero.Numeros_Jugadores - 1) {
             return true;
-        }else{
+        } else {
             return false;
         }
     }
@@ -160,7 +167,7 @@ public class BombermanServidor implements Bomberman {
      * @return Lista de jugadores listos para la partida.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
-    public ArrayList<Jugador> Jugadores_Listos() throws RemoteException{
+    public ArrayList<Jugador> Jugadores_Listos() throws RemoteException {
         // Devolver la lista de jugadores del campo de juego
         return Tablero.Jugadores;
     }
@@ -171,13 +178,14 @@ public class BombermanServidor implements Bomberman {
      * @return Número total de jugadores para la partida.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
-    public int Numero_Jugadores() throws RemoteException{
+    public int Numero_Jugadores() throws RemoteException {
         // Devolver el número total de jugadores configurado en el campo de juego
         return Tablero.Numeros_Jugadores;
     }
 
     /**
-     * Método para obtener el estado actual de los jugadores en el servidor Bomberman.
+     * Método para obtener el estado actual de los jugadores en el servidor
+     * Bomberman.
      * 
      * @return Lista de jugadores con su estado actual.
      * @throws RemoteException Si ocurre un error de comunicación remota.
@@ -190,18 +198,29 @@ public class BombermanServidor implements Bomberman {
     /**
      * Método para obtener el estado actual del juego en el servidor Bomberman.
      * 
-     * @return Lista de estados del juego, incluyendo información sobre los jugadores.
+     * @return Lista de estados del juego, incluyendo información sobre los
+     *         jugadores.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
     public ArrayList<Estado> Obtener_Estado() throws RemoteException {
         // Crear un nuevo objeto Estado y agregar la información de los jugadores
         Estado Estado = new Estado();
         Estado.Jugadores.addAll(Tablero.Jugadores);
+
+        Iterator<Bomba> Bomba = Tablero.Bombas.iterator();
+        while (Bomba.hasNext()) {
+            Bomba elemento = Bomba.next();
+            int comparacion = elemento.Hora_Explosion.compareTo(LocalDateTime.now());
+            if (comparacion < 0) {
+                Bomba.remove();
+            }
+        }
+
+
         Estado.Bombas.addAll(Tablero.Bombas);
 
         // Agregar el estado actual a la lista de estados en el campo de juego
         Tablero.Estado.add(Estado);
-        
 
         // Devolver la lista de estados del campo de juego
         return Tablero.Estado;
@@ -211,38 +230,41 @@ public class BombermanServidor implements Bomberman {
      * Método para actualizar la posición de un jugador en el servidor Bomberman.
      * 
      * @param id Identificador único del jugador.
-     * @param x Nueva coordenada X de la posición del jugador.
-     * @param y Nueva coordenada Y de la posición del jugador.
+     * @param x  Nueva coordenada X de la posición del jugador.
+     * @param y  Nueva coordenada Y de la posición del jugador.
      * @throws RemoteException Si ocurre un error de comunicación remota.
      */
     public void movimiento(int id, int x, int y) throws RemoteException {
         // Actualizar la posición del jugador con el ID proporcionado
         for (Jugador Jugador : Tablero.Jugadores) {
-            if (Jugador.ID == id){
+            if (Jugador.ID == id) {
                 Jugador.Posicion.X = x;
                 Jugador.Posicion.Y = y;
             }
         }
     }
 
-
     public void ponerBomba(int ID_Player, int X, int Y) throws RemoteException {
         System.out.println("Crear bomba");
-        Bomba Bomba = new Bomba(Number_Booms, ID_Player, X, Y);
-        //ID Bomba
-        
-        System.out.println(Bomba.ID_Bomba);
-        System.out.println(Bomba.Posicion.X);
-        System.out.println(Bomba.Posicion.Y);
-        System.out.println(Bomba.Hora_Creacion);
-        System.out.println(Bomba.Hora_Explosion);
-        Number_Booms++; 
-        Tablero.Bombas.add(Bomba);
+        boolean Bomba_Activa_Player = false;
+        for (Bomba Bomba : Tablero.Bombas) {
+            if (Bomba.ID_Player == ID_Player) {
+                Bomba_Activa_Player = true;
+            }
+        }
+
+        if (!Bomba_Activa_Player) {
+            Bomba Bomba = new Bomba(Number_Booms, ID_Player, X, Y);
+
+            Number_Booms++;
+            Tablero.Bombas.add(Bomba);
+        }
+
     }
 
     public void eliminacion(String Simbolo) throws RemoteException {
         for (Jugador Jugador : Tablero.Jugadores) {
-            if (Jugador.Simbolo.equals(Simbolo)){
+            if (Jugador.Simbolo.equals(Simbolo)) {
                 Jugador.Estado = false;
             }
         }
@@ -251,7 +273,8 @@ public class BombermanServidor implements Bomberman {
     /**
      * Método principal para iniciar el servidor Bomberman.
      * 
-     * @param args Los argumentos de la línea de comandos (no se utilizan en este ejemplo).
+     * @param args Los argumentos de la línea de comandos (no se utilizan en este
+     *             ejemplo).
      */
     public static void main(String[] args) {
         try {
@@ -268,19 +291,16 @@ public class BombermanServidor implements Bomberman {
             registry.bind("BombermanServer", stub);
 
             System.out.println("✅ Servidor listo...");
-            
+
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    
-
-    
 }
 
-class Bomberman_Game implements java.io.Serializable{
-    String [][] Tablero = new String[11][11];
+class Bomberman_Game implements java.io.Serializable {
+    String[][] Tablero = new String[11][11];
 
     int Numeros_Jugadores;
     int Jugadores_Registrados;
@@ -292,7 +312,7 @@ class Bomberman_Game implements java.io.Serializable{
     /**
      * Visualiza el campo de juego en la consola.
      */
-    void Visualizar_Campo(){
+    void Visualizar_Campo() {
         for (int i = 0; i < Tablero.length; i++) {
             for (int j = 0; j < Tablero.length; j++) {
                 System.out.print(Tablero[i][j]);
@@ -304,7 +324,7 @@ class Bomberman_Game implements java.io.Serializable{
     /**
      * Inicializa el campo de juego con celdas vacías.
      */
-    void Campo_Juego(){
+    void Campo_Juego() {
         for (int i = 0; i < Tablero.length; i++) {
             for (int j = 0; j < Tablero.length; j++) {
                 Tablero[i][j] = "0";
@@ -315,19 +335,19 @@ class Bomberman_Game implements java.io.Serializable{
     /**
      * Limita el campo de juego estableciendo bordes con celdas bloqueadas.
      */
-    void Limitar(){
+    void Limitar() {
         for (int i = 0; i < Tablero.length; i++) {
             for (int j = 0; j < Tablero.length; j++) {
-                if (i == 0 || i == Tablero.length - 1 || j == 0 || j == Tablero.length-1){
+                if (i == 0 || i == Tablero.length - 1 || j == 0 || j == Tablero.length - 1) {
                     Tablero[i][j] = "1";
                 }
             }
         }
     }
 
-    void Crear_Obstaculos(){
+    void Crear_Obstaculos() {
         for (int i = 2; i < Tablero.length - 2; i = i + 2) {
-            for (int j = 2; j < Tablero.length - 2; j = j + 2) {    
+            for (int j = 2; j < Tablero.length - 2; j = j + 2) {
                 Tablero[i][j] = "1";
             }
         }
@@ -339,9 +359,8 @@ class Bomberman_Game implements java.io.Serializable{
      * @return Lista de jugadores.
      */
     public List<Jugador> obtenerJugadores() {
-        // Devolver una copia de la lista de jugadores para evitar problemas de concurrencia
+        // Devolver una copia de la lista de jugadores para evitar problemas de
+        // concurrencia
         return new ArrayList<>(Jugadores);
     }
 }
-
-
