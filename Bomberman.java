@@ -52,16 +52,37 @@ class Jugador implements java.io.Serializable {
     }
 }
 
-class Bomba implements java.io.Serializable{
-    int ID_Bomba;
-    int ID_Player;
-    Posicion Posicion = new Posicion();
-    LocalDateTime Hora_Creacion;
-    LocalDateTime Hora_Explosion;
-    LocalDateTime Hora_Estallido;
-    Boolean Estado_Bomba;
+/**
+ * La clase Bomba representa una bomba en el juego.
+ * Implementa la interfaz Serializable para permitir su serialización.
+ */
 
+class Bomba implements java.io.Serializable{
+    // Identificador único de la bomba
+    int ID_Bomba;
+    // Identificador del jugador que colocó la bomba
+    int ID_Player;
+    // Posición en la que se encuentra la bomba en el tablero
+    Posicion Posicion = new Posicion();
+    // Momento en que la bomba fue creada
+    LocalDateTime Hora_Creacion;
+    // Momento en que la bomba explotará
+    LocalDateTime Hora_Explosion;
+    // Momento en que la bomba estallará
+    LocalDateTime Hora_Estallido;
+    // Estado de la bomba (activa o inactiva)
+    Boolean Estado_Bomba;
+    
+    /**
+     * Constructor de la clase Bomba.
+     *
+     * @param ID_Bomba    Identificador único de la bomba.
+     * @param ID_Player   Identificador del jugador que colocó la bomba.
+     * @param X           Coordenada X de la posición de la bomba en el tablero.
+     * @param Y           Coordenada Y de la posición de la bomba en el tablero.
+     */
     Bomba(int ID_Bomba, int ID_Player, int X, int Y){
+        // Inicialización de los atributos
         this.ID_Bomba = ID_Bomba;
         this.ID_Player = ID_Player;
         this.Posicion.X = X;
@@ -69,7 +90,7 @@ class Bomba implements java.io.Serializable{
         this.Hora_Creacion = LocalDateTime.now();
         this.Hora_Explosion = this.Hora_Creacion.plus(4, ChronoUnit.SECONDS);
         this.Hora_Estallido = this.Hora_Creacion.plus(3, ChronoUnit.SECONDS);
-        this.Estado_Bomba = true;
+        this.Estado_Bomba = true;// La bomba se crea en un estado activo
     }
 }
 class Posicion implements java.io.Serializable {

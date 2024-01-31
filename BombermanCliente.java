@@ -32,7 +32,6 @@ public class BombermanCliente extends JFrame {
     int ID_Player;
     MyKeyListener myKeyListener = new MyKeyListener();
     static Bomberman server2;
-    // static String[][] Tablero_Game;
     ScheduledExecutorService Segundo_Plano = Executors.newSingleThreadScheduledExecutor();
     ScheduledFuture<?> Tarea;
     boolean State_Game = true;
@@ -41,14 +40,21 @@ public class BombermanCliente extends JFrame {
         super("The Bomberman");
     }
 
-    // Método para cargar una fuente personalizada desde un archivo TTF
+    /**
+     * Carga una fuente personalizada desde un archivo dado.
+     * Si la carga es exitosa, devuelve la fuente; de lo contrario,
+     * imprime la excepción y devuelve la fuente predeterminada Arial.
+     *
+     * @param fontPath La ruta al archivo de fuente TrueType (TTF).
+     * @return La fuente cargada o la fuente predeterminada Arial si hay un error.
+     */
     private Font loadCustomFont(String fontPath) {
         try {
+            // Intenta cargar la fuente desde el archivo especificado
             return Font.createFont(Font.TRUETYPE_FONT, new File(fontPath)).deriveFont(Font.PLAIN, 12);
         } catch (IOException | FontFormatException e) {
+            // Si hay un error al cargar la fuente, imprime la excepción y usa la fuente predeterminada
             e.printStackTrace();
-            // Manejar la excepción apropiadamente (puedes mostrar un mensaje de error,
-            // utilizar una fuente predeterminada, etc.)
             return new Font("Arial", Font.PLAIN, 12);
         }
     }
@@ -106,20 +112,26 @@ public class BombermanCliente extends JFrame {
         revalidate();
         repaint();
     }
-
+    /**
+     * Método que se encarga de actualizar la interfaz gráfica del juego.
+     * Carga el tablero del servidor, muestra la posición de los jugadores, bombas y explosiones.
+     * También gestiona la eliminación de jugadores y el final de la partida.
+     */
     private void Juego_GUI() {
         try {
+            // Obtener el estado actual del juego y el tablero
             String[][] Tablero = server2.Obtener_Campo();
             Font customFont = loadCustomFont("PixelGameFont.ttf");
+            // Crear un JLabel para mostrar el título del juego
             JLabel label = new JLabel("** PARTIDA ** ");
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setVerticalAlignment(SwingConstants.CENTER);
             label.setForeground(Color.WHITE);
             label.setBorder(BorderFactory.createEmptyBorder(50, 0, 50, 0));
-            // Aumentar el tamaño de la fuente personalizada
             Font originalFont = customFont.deriveFont(customFont.getSize2D() + 8f);
             label.setFont(originalFont);
 
+            // Crear un JPanel para representar el campo de juego
             JPanel Panel_Juego = new JPanel();
             Panel_Juego.setPreferredSize(new Dimension(352, 352));
             Panel_Juego.setLayout(new GridLayout(11, 11));
@@ -128,6 +140,7 @@ public class BombermanCliente extends JFrame {
             Panel_Juego.setBackground(Color.BLACK);
             int Number_Players_Living = 0;
 
+            // Verificar el estado de los jugadores y actualizar el tablero
             boolean Living = true;
             ArrayList<Estado> Estados = server2.Obtener_Estado();
             for (Jugador Jugador : Estados.get(Estados.size() - 1).Jugadores) {
@@ -140,9 +153,11 @@ public class BombermanCliente extends JFrame {
                 }
             }
 
+           // Manejar la situación en la que el jugador actual es eliminado
             if (Living == false) {
                 if (State_Game == true) {
                     Tarea.cancel(true);
+                    // Mostrar un cuadro de diálogo para decidir seguir viendo la partida o salir
                     Object[] opciones = { "Seguir viendo la partida", "Salir" };
                     int opcion = JOptionPane.showOptionDialog(
                             null,
@@ -159,37 +174,38 @@ public class BombermanCliente extends JFrame {
                     if (opcion == JOptionPane.YES_OPTION) {
                         State_Game = false;
                         Tarea.cancel(false);
-                        // Agrega la lógica para "Seguir viendo la partida" aquí
+         
                     } else if (opcion == JOptionPane.NO_OPTION) {
                         dispose();
                         System.exit(0);
-                        // Agrega la lógica para "Salir" aquí
+                 
                     } else if (opcion == JOptionPane.CLOSED_OPTION) {
                         dispose();
                         System.exit(0);
-                        // Puedes manejar el caso en que el usuario cierre el diálogo sin seleccionar
-                        // una opción
+           
                     }
                 }
 
             }
-
+            // Manejar la situación en la que solo queda un jugador vivo
             if (Number_Players_Living == 1) {
                 Tarea.cancel(true);
                 JOptionPane.showMessageDialog(null, "Haz ganado!", "Ganador!!!", JOptionPane.INFORMATION_MESSAGE);
                 dispose();
                 System.exit(0);
             }
-
+            // Actualizar el estado de las bombas y explosiones en el tablero
             for (Bomba Bomba : Estados.get(Estados.size() - 1).Bombas) {
+                // Actualizar el tablero con bombas no explotadas
                 int comparacion = Bomba.Hora_Estallido.compareTo(LocalDateTime.now());
                 if (comparacion > 0) {
                     Tablero[Bomba.Posicion.X][Bomba.Posicion.Y] = "O";
                 }
-
+                // Actualizar el tablero con bombas explotadas
                 int comparacion2 = Bomba.Hora_Explosion.compareTo(LocalDateTime.now());
                 if (comparacion < 0 && comparacion2 > 0) {
                     Tablero[Bomba.Posicion.X][Bomba.Posicion.Y] = "X";
+                     // Gestionar eliminación de jugadores afectados por la explosión
                     if (!Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y].equals("1")) {
                         if (!Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y].equals("0")) {
                             server2.eliminacion(Tablero[Bomba.Posicion.X - 1][Bomba.Posicion.Y]);
@@ -216,7 +232,7 @@ public class BombermanCliente extends JFrame {
                     }
                 }
             }
-
+            // Crear JLabels y agregarlos al panel según el contenido del tablero
             for (int i = 0; i < Tablero.length; i++) {
                 for (int j = 0; j < Tablero.length; j++) {
                     if (Tablero[i][j].equals("A")) {
@@ -311,7 +327,7 @@ public class BombermanCliente extends JFrame {
                     }
                 }
             }
-
+            // Configurar el diseño del contenedor principal
             getContentPane().setLayout(new BorderLayout());
             getContentPane().add(label, BorderLayout.NORTH);
             getContentPane().add(Panel_Juego, BorderLayout.CENTER);
@@ -324,10 +340,15 @@ public class BombermanCliente extends JFrame {
 
     }
 
+    /**
+    * Método para obtener la posición actual del jugador en el tablero.
+    * @return Lista que contiene la posición X e Y del jugador.
+    */
     List<Integer> Ubicar_Player() {
         try {
             int X_Axis = 0;
             int Y_Axis = 0;
+            // Obtener el estado actual del juego
             ArrayList<Estado> Estados = server2.Obtener_Estado();
             for (Jugador Jugador : Estados.get(Estados.size() - 1).Jugadores) {
                 if (Jugador.ID == ID_Player) {
@@ -335,6 +356,7 @@ public class BombermanCliente extends JFrame {
                     Y_Axis = Jugador.Posicion.Y;
                 }
             }
+            // Crear una lista con la posición X e Y del jugador
             List<Integer> Posicion = new ArrayList<>();
             Posicion.add(X_Axis);
             Posicion.add(Y_Axis);
@@ -346,67 +368,92 @@ public class BombermanCliente extends JFrame {
         }
         return null;
     }
-
+    /**
+    * Método para mover al jugador hacia arriba en el tablero.
+    * @param Posicion Lista que contiene la posición actual del jugador.
+    */
     void Move_Up(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
+            // Verificar si la casilla superior no es un muro (representado por "1")
             if (!Tablero[X_Axis - 1][Y_Axis].equals("1")) {
+                // Realizar el movimiento llamando al método remoto del servidor
                 server2.movimiento(ID_Player, X_Axis - 1, Y_Axis);
-                // Tablero_Game[X_Axis][Y_Axis] = "0";
+                
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+    * Método para mover al jugador hacia abajo en el tablero.
+    * @param Posicion Lista que contiene la posición actual del jugador.
+    */
     void Move_Down(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
+            // Verificar si la casilla inferior no es un muro (representado por "1")
             if (!Tablero[X_Axis + 1][Y_Axis].equals("1")) {
+                // Realizar el movimiento llamando al método remoto del servidor
                 server2.movimiento(ID_Player, X_Axis + 1, Y_Axis);
-                // Tablero_Game[X_Axis][Y_Axis] = "0";
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
-
+    /**
+    * Método para mover al jugador hacia la izquierda en el tablero.
+    * @param Posicion Lista que contiene la posición actual del jugador.
+    */
     void Move_Left(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
+             // Verificar si la casilla a la izquierda no es un muro (representado por "1")
             if (!Tablero[X_Axis][Y_Axis - 1].equals("1")) {
+                // Realizar el movimiento llamando al método remoto del servidor
                 server2.movimiento(ID_Player, X_Axis, Y_Axis - 1);
-                // Tablero_Game[X_Axis][Y_Axis] = "0";
+               
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+    * Método para mover al jugador hacia la derecha en el tablero.
+    * @param Posicion Lista que contiene la posición actual del jugador.
+    */
     void Move_Right(List<Integer> Posicion) {
         try {
             String[][] Tablero = server2.Obtener_Campo();
             int X_Axis = Posicion.get(0);
             int Y_Axis = Posicion.get(1);
+            // Verificar si la casilla a la derecha no es un muro (representado por "1")
             if (!Tablero[X_Axis][Y_Axis + 1].equals("1")) {
+                // Realizar el movimiento llamando al método remoto del servidor
                 server2.movimiento(ID_Player, X_Axis, Y_Axis + 1);
-                // Tablero_Game[X_Axis][Y_Axis] = "0";
             }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Método para colocar una bomba en la posición actual del jugador.
+     * @param Posicion Lista que contiene la posición actual del jugador.
+     */
     void Place_Bomb(List<Integer> Posicion) {
         int X_Axis = Posicion.get(0);
         int Y_Axis = Posicion.get(1);
         try {
+            // Llamar al método remoto del servidor para colocar una bomba en la posición actual
             server2.ponerBomba(ID_Player, X_Axis, Y_Axis);
         } catch (RemoteException e) {
             e.printStackTrace();
@@ -416,7 +463,6 @@ public class BombermanCliente extends JFrame {
     private class MyKeyListener implements KeyListener {
         @Override
         public void keyTyped(KeyEvent e) {
-            // No necesitas implementar esto para las teclas de flecha
         }
 
         @Override
@@ -427,66 +473,48 @@ public class BombermanCliente extends JFrame {
 
             switch (keyCode) {
                 case KeyEvent.VK_UP:
-
                     Move_Up(Posicion);
-                    // removeKeyListener(myKeyListener);
-                    // limpiarJFrame();
-                    // Juego_GUI();
-
                     break;
                 case KeyEvent.VK_DOWN:
-
                     Move_Down(Posicion);
-                    // removeKeyListener(myKeyListener);
-                    // limpiarJFrame();
-                    // Juego_GUI();
-                    // Acción cuando se presiona la flecha hacia abajo
                     break;
                 case KeyEvent.VK_LEFT:
-
                     Move_Left(Posicion);
-                    // removeKeyListener(myKeyListener);
-                    // limpiarJFrame();
-                    // Juego_GUI();
-                    // Acción cuando se presiona la flecha hacia la izquierda
                     break;
                 case KeyEvent.VK_RIGHT:
                     Move_Right(Posicion);
-                    // removeKeyListener(myKeyListener);
-                    // limpiarJFrame();
-                    // Juego_GUI();
-
-                    // Acción cuando se presiona la flecha hacia la derecha
                     break;
                 case KeyEvent.VK_SPACE:
                     Place_Bomb(Posicion);
-                    // Acción cuando se presiona la barra espaciadora
                     break;
             }
         }
 
         @Override
         public void keyReleased(KeyEvent e) {
-            // Puedes dejar este método vacío si no necesitas realizar acciones cuando se
-            // libera una tecla.
         }
     }
 
+    /**
+     * Método para mostrar la interfaz gráfica de la sala de la partida.
+     */
     private void SalaPartida_GUI() {
 
         try {
+            // Cargar fuente personalizada
             Font customFont = loadCustomFont("PixelGameFont.ttf");
+
+            // Crear y personalizar etiqueta principal
             JLabel label = new JLabel("SALA DE LA PARTIDA");
             label.setHorizontalAlignment(SwingConstants.CENTER);
             label.setVerticalAlignment(SwingConstants.CENTER);
             label.setForeground(Color.WHITE);
             label.setBorder(BorderFactory.createEmptyBorder(50, 0, 50, 0));
 
-            // Aumentar el tamaño de la fuente personalizada
             Font originalFont = customFont.deriveFont(customFont.getSize2D() + 8f);
             label.setFont(originalFont);
 
-            // Crear un JLabel con el texto y centrarlo en la ventana
+            // Crear y personalizar etiqueta secundaria
             JLabel label1 = new JLabel("Faltan algun los jugadores ...");
             label1.setHorizontalAlignment(SwingConstants.CENTER);
             label1.setVerticalAlignment(SwingConstants.CENTER);
@@ -496,11 +524,14 @@ public class BombermanCliente extends JFrame {
             Font originalFont1 = customFont.deriveFont(customFont.getSize2D() + 5f);
             label1.setFont(originalFont1);
 
+            // Obtener lista de jugadores
             ArrayList<Jugador> Jugadores = server2.Jugadores_Listos();
 
+            // Crear modelo de tabla
             DefaultTableModel modelo = new DefaultTableModel();
             JTable tabla = new JTable(modelo);
 
+            // Definir columnas de la tabla
             Object[] columnas = { "ID", "Nombre", "Simbolo" };
             modelo.setColumnIdentifiers(columnas);
 
@@ -524,11 +555,10 @@ public class BombermanCliente extends JFrame {
 
                 try {
                     if (server2.partidaLista()) {
-                        // label1.setText("Todos los jugadores listos ...");
                         limpiarJFrame();
-                        int periodoSegundos = 100; // Ajusta el periodo según tus necesidades
+                        int periodoSegundos = 100;
                         Tarea = Segundo_Plano.scheduleAtFixedRate(() -> {
-                            // Lógica de la tarea que se ejecutará en segundo plano
+                            //Segundo plano
                             SwingUtilities.invokeLater(() -> {
                                 removeKeyListener(myKeyListener);
                                 limpiarJFrame();
@@ -565,12 +595,13 @@ public class BombermanCliente extends JFrame {
             repaint();
 
         } catch (RemoteException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
 
     }
-
+    /**
+    * Método para mostrar la interfaz gráfica de la creación de un jugador.
+    */
     private void CrearJugador_GUI() {
         Font customFont = loadCustomFont("PixelGameFont.ttf");
 
@@ -590,20 +621,20 @@ public class BombermanCliente extends JFrame {
         textFieldPanel.setBackground(Color.BLACK);
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.insets = new Insets(0, 30, 0, 30); // Ajustar los márgenes según sea necesario
+        gbc.insets = new Insets(0, 30, 0, 30);
 
         JLabel userLabel = new JLabel("Usuario del Jugador");
         userLabel.setForeground(Color.WHITE);
         gbc.gridx = 0;
         gbc.gridy = 0;
-        gbc.weightx = 1.0; // Expandir horizontalmente
+        gbc.weightx = 1.0; 
         textFieldPanel.add(userLabel, gbc);
 
         JTextField Name_Player = new JTextField(20);
         Name_Player.setPreferredSize(new Dimension(Name_Player.getPreferredSize().width, 30));
         gbc.gridx = 0;
         gbc.gridy = 1;
-        gbc.weightx = 1.0; // Expandir horizontalmente
+        gbc.weightx = 1.0; 
         textFieldPanel.add(Name_Player, gbc);
 
         // Crear un botón para aceptar
@@ -612,6 +643,7 @@ public class BombermanCliente extends JFrame {
             // Acciones al hacer clic en "Aceptar"
 
             try {
+                //compara que no se ah alcanzado el limite de jugadores
                 if (server2.Limite_Jugadores()) {
                     String _Name_Player = Name_Player.getText();
                     ID_Player = server2.nuevoJugador(_Name_Player);
@@ -636,19 +668,20 @@ public class BombermanCliente extends JFrame {
         buttonPanel.add(aceptarButton);
         buttonPanel.setBackground(Color.BLACK);
 
-        // Establecer la altura del JPanel a 100 píxeles
         int panelHeight = 100;
         buttonPanel.setPreferredSize(new Dimension(buttonPanel.getPreferredSize().width, panelHeight));
 
-        // Usar un BorderLayout para el contenedor principal
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(label, BorderLayout.NORTH);
-        getContentPane().add(textFieldPanel, BorderLayout.CENTER); // Usar el nuevo JPanel
+        getContentPane().add(textFieldPanel, BorderLayout.CENTER); 
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
         revalidate();
         repaint();
     }
 
+    /**
+     * Método para mostrar la interfaz gráfica de la creación de una nueva partida.
+     */
     private void CrearNuevaPartida_GUI() {
         Font customFont = loadCustomFont("PixelGameFont.ttf");
 
@@ -656,7 +689,7 @@ public class BombermanCliente extends JFrame {
         JLabel label = new JLabel("NUEVA PARTIDA");
         label.setHorizontalAlignment(SwingConstants.CENTER);
         label.setVerticalAlignment(SwingConstants.CENTER);
-        label.setForeground(Color.WHITE); // Cambiar el color del texto según sea necesario
+        label.setForeground(Color.WHITE); 
         label.setBorder(BorderFactory.createEmptyBorder(50, 0, 0, 0));
 
         // Aumentar el tamaño de la fuente personalizada
@@ -699,7 +732,6 @@ public class BombermanCliente extends JFrame {
         checkBox2Jugadores.addActionListener(checkBoxActionListener);
         checkBox4Jugadores.addActionListener(checkBoxActionListener);
 
-        // Crear un JPanel para los checkBox con GridLayout
         JPanel checkBoxPanel = new JPanel(new GridBagLayout());
         checkBoxPanel.setBackground(Color.BLACK);
         GridBagConstraints c = new GridBagConstraints();
@@ -726,6 +758,7 @@ public class BombermanCliente extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 // Acciones al hacer clic en "Aceptar"
                 try {
+                    //Validad si la partida ya esta en curso
                     if (server2.Validar_Partida()) {
                         JOptionPane.showMessageDialog(null, "Ya hay una partida en curso ...", "Error de SERVER",
                                 JOptionPane.WARNING_MESSAGE);
@@ -748,7 +781,6 @@ public class BombermanCliente extends JFrame {
 
         buttonPanel.setBackground(Color.BLACK);
 
-        // Establecer la altura del JPanel a 100 píxeles
         int panelHeight = 100;
         buttonPanel.setPreferredSize(new Dimension(buttonPanel.getPreferredSize().width, panelHeight));
 
@@ -759,7 +791,9 @@ public class BombermanCliente extends JFrame {
         revalidate();
         repaint();
     }
-
+    /**
+     * Método para mostrar la interfaz gráfica de la ventana principal.
+     */
     private void Open_Window() {
         Font customFont = loadCustomFont("PixelGameFont.ttf");
         // Aplicar la fuente al JFrame y sus componentes
@@ -790,7 +824,7 @@ public class BombermanCliente extends JFrame {
             BufferedImage originalImage = ImageIO.read(file);
 
             // Calcular las nuevas dimensiones basadas en un porcentaje
-            double scalePercentage = 0.5; // 50% del tamaño original
+            double scalePercentage = 0.5; 
             int newWidth = (int) (originalImage.getWidth() * scalePercentage);
             int newHeight = (int) (originalImage.getHeight() * scalePercentage);
             Image scaledImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
@@ -818,37 +852,32 @@ public class BombermanCliente extends JFrame {
         Insets buttonInsets = new Insets(20, 0, 20, 0); // (arriba, izquierda, abajo, derecha)
         nuevaPartidaButton.setMargin(buttonInsets);
 
-        // nuevaPartidaButton.setContentAreaFilled(false);
-        // nuevaPartidaButton.setBorderPainted(false);
-        nuevaPartidaButton.setBackground(Color.ORANGE);// inside the brackets your rgb color value like 255,255,255
+        nuevaPartidaButton.setBackground(Color.ORANGE);
         nuevaPartidaButton.setForeground(Color.RED);
-        // nuevaPartidaButton.setFocusPainted(false);
-        // nuevaPartidaButton.setOpaque(true);
 
         crearJugadorButton.setMargin(buttonInsets);
 
         crearJugadorButton.setContentAreaFilled(false);
         crearJugadorButton.setBorderPainted(false);
-        crearJugadorButton.setBackground(Color.ORANGE);// inside the brackets your rgb color value like 255,255,255
+        crearJugadorButton.setBackground(Color.ORANGE);
         crearJugadorButton.setForeground(Color.RED);
         crearJugadorButton.setFocusPainted(false);
         crearJugadorButton.setOpaque(true);
 
         iniciarPartidaButton.setContentAreaFilled(false);
         iniciarPartidaButton.setBorderPainted(false);
-        iniciarPartidaButton.setBackground(Color.ORANGE);// inside the brackets your rgb color value like 255,255,255
+        iniciarPartidaButton.setBackground(Color.ORANGE);
         iniciarPartidaButton.setForeground(Color.RED);
         iniciarPartidaButton.setFocusPainted(false);
         iniciarPartidaButton.setOpaque(true);
 
         salirButton.setContentAreaFilled(false);
         salirButton.setBorderPainted(false);
-        salirButton.setBackground(Color.ORANGE);// inside the brackets your rgb color value like 255,255,255
+        salirButton.setBackground(Color.ORANGE);
         salirButton.setForeground(Color.RED);
         salirButton.setFocusPainted(false);
         salirButton.setOpaque(true);
 
-        // Establecer un ancho específico a los botones
         int buttonWidth = 25;
         int buttonHeight = 50;
         nuevaPartidaButton.setPreferredSize(new Dimension(buttonWidth, buttonHeight));
@@ -869,8 +898,8 @@ public class BombermanCliente extends JFrame {
         crearJugadorButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Lógica para la opción de Crear Jugador
                 try {
+                    //Valida si la partida esta en curso
                     if (server2.Validar_Partida()) {
                         limpiarJFrame();
                         CrearJugador_GUI();
@@ -889,8 +918,8 @@ public class BombermanCliente extends JFrame {
         iniciarPartidaButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Lógica para la opción de Iniciar Partida
                 try {
+                    //Valida si la partida esta en curso
                     if (server2.Validar_Partida()) {
                         limpiarJFrame();
                         SalaPartida_GUI();
@@ -908,8 +937,6 @@ public class BombermanCliente extends JFrame {
         salirButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // Lógica para la opción de Salir
-                
                 System.exit(0); // Cierra la aplicación
             }
         });
@@ -945,9 +972,6 @@ public class BombermanCliente extends JFrame {
         c.weightx = 0.5;
         c.insets = new Insets(10, 100, 20, 100);
         buttonPanel.add(salirButton, c);
-
-        // buttonPanel.setLayout(new BorderLayout(0,0));
-        // Agregar el panel de botones debajo del texto
         getContentPane().add(buttonPanel, BorderLayout.SOUTH);
 
         setVisible(true);

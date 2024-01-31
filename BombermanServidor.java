@@ -196,17 +196,18 @@ public class BombermanServidor implements Bomberman {
     }
 
     /**
-     * Método para obtener el estado actual del juego en el servidor Bomberman.
-     * 
-     * @return Lista de estados del juego, incluyendo información sobre los
-     *         jugadores.
-     * @throws RemoteException Si ocurre un error de comunicación remota.
+     * Obtiene el estado actual del juego, incluyendo la información sobre jugadores y bombas.
+     *
+     * @return Un ArrayList de objetos Estado que representan el estado actual del juego.
+     * @throws RemoteException Si ocurre un error remoto al obtener el estado.
      */
     public ArrayList<Estado> Obtener_Estado() throws RemoteException {
-        // Crear un nuevo objeto Estado y agregar la información de los jugadores
+        // Crear un nuevo objeto Estado para almacenar la información actual
         Estado Estado = new Estado();
+        // Agregar la información de los jugadores al objeto Estado
         Estado.Jugadores.addAll(Tablero.Jugadores);
 
+        // Iterar sobre las bombas y eliminar las que han explotado
         Iterator<Bomba> Bomba = Tablero.Bombas.iterator();
         while (Bomba.hasNext()) {
             Bomba elemento = Bomba.next();
@@ -216,13 +217,11 @@ public class BombermanServidor implements Bomberman {
             }
         }
 
-
+        // Agregar la información de las bombas al objeto Estado
         Estado.Bombas.addAll(Tablero.Bombas);
-
-        // Agregar el estado actual a la lista de estados en el campo de juego
+        // Agregar el objeto Estado al historial de estados del Tablero
         Tablero.Estado.add(Estado);
-
-        // Devolver la lista de estados del campo de juego
+        // Devolver el historial completo de estados del Tablero
         return Tablero.Estado;
     }
 
@@ -244,27 +243,46 @@ public class BombermanServidor implements Bomberman {
         }
     }
 
+    /**
+     * Coloca una bomba en la posición especificada por un jugador.
+     *
+     * @param ID_Player Identificador único del jugador que coloca la bomba.
+     * @param X         Coordenada X donde se coloca la bomba en el tablero.
+     * @param Y         Coordenada Y donde se coloca la bomba en el tablero.
+     * @throws RemoteException Si ocurre un error remoto al colocar la bomba.
+     */
     public void ponerBomba(int ID_Player, int X, int Y) throws RemoteException {
         System.out.println("Crear bomba");
+        // Verificar si el jugador ya tiene una bomba activa
         boolean Bomba_Activa_Player = false;
         for (Bomba Bomba : Tablero.Bombas) {
             if (Bomba.ID_Player == ID_Player) {
                 Bomba_Activa_Player = true;
             }
         }
-
+        // Si el jugador no tiene una bomba activa, colocar una nueva bomba en el tablero
         if (!Bomba_Activa_Player) {
+            // Crear una nueva bomba con un identificador único y las coordenadas proporcionadas
             Bomba Bomba = new Bomba(Number_Booms, ID_Player, X, Y);
-
+            // Incrementar el contador de bombas
             Number_Booms++;
+             // Agregar la nueva bomba al conjunto de bombas en el tablero
             Tablero.Bombas.add(Bomba);
         }
 
     }
-
+    /**
+     * Marca a un jugador como eliminado, cambiando su estado a inactivo.
+     *
+     * @param Simbolo Símbolo único del jugador a ser eliminado.
+     * @throws RemoteException Si ocurre un error remoto al intentar eliminar al jugador.
+     */
     public void eliminacion(String Simbolo) throws RemoteException {
+        // Iterar sobre la lista de jugadores en el tablero
         for (Jugador Jugador : Tablero.Jugadores) {
+            // Verificar si el jugador actual tiene el símbolo proporcionado
             if (Jugador.Simbolo.equals(Simbolo)) {
+                // Marcar al jugador como inactivo (eliminado)
                 Jugador.Estado = false;
             }
         }
